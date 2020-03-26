@@ -1,0 +1,71 @@
+import os
+import re
+import sys
+import io
+import xlrd
+import itertools
+
+# *****Create Lists
+myname = []
+myvip = []
+mydes = []
+
+# *****Specify File Location
+vip = (r"C:\Users\XXXXXXXXXXX\Desktop\VIP.xlsx")
+
+# *****Open Excel Workbook
+wb = xlrd.open_workbook(vip)
+
+# *****Open Work Sheet
+vip_list = wb.sheet_by_index(0) 
+
+# *****For row 0 and column 0 
+vip_list.cell_value(0, 0) 
+
+# *****Store Output to List
+for i in range(vip_list.nrows): 
+    myname.append(vip_list.cell_value(i, 0))
+    myvip.append(vip_list.cell_value(i, 1))
+    mydes.append(vip_list.cell_value(i, 2))
+    
+#*****Create Managed Object Name with Standard Naming Convention
+mymo = [] 
+for i in myname:
+    mymo.append ("OPT_INF_"+str(i))
+
+#*****Create Description (Pool Members)
+des = [] 
+for x in mydes:
+    des.append ("Created by Asarran 03/24/2020: Pool Members: "+str(x))
+
+#*****Function
+def build_mo(mymo, myvip, des):
+    try:
+        for x,y,z in zip(mymo, myvip, des):
+            print ("services sp managed_objects add" + " " + '"{}"'.format(x))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " mitigation automitigation blackhole disable")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " mitigation automitigation ip_version set 4")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " mitigation automitigation tms disable")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " mitigation automitigation disable")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " mitigation template automitigation set" + " " + '"{}"'.format("Auto-Mitigation IPv4"))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " description set" + " " + '"{}"'.format(z)) 
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " family set customer")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " mitigation template default set " + '"{}"'.format("Default IPv4"))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " tags add" + " " + '"{}"'.format("VIP"))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " tags add" + " " + '"{}"'.format("OPT"))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " tags add" + " " + '"{}"'.format("IHigh Value Resource"))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " match set cidr_blocks" + " " + (y) + "/32")
+            #print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " match set cidr_blocks" + " " + '"{}"'.format(y))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " detection profiled disable")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " detection host shared set" + " " + '"{}"'.format("copied from CV_Website_www.optimum.com"))
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " detection network disable")
+            print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " detection network country disable")
+            #print ("services sp managed_objects edit" + " " + '"{}"'.format(x) + " detection network ipv4 enable")
+            #print ("#################################################################################")
+            print ("                                                                                                                                                                                      ")
+            #print ("#################################################################################")
+    except Exception as ex:
+        print ("end")
+
+#*****Call Function and passes variables (list) into function.
+build_mo(mymo, myvip, des)
