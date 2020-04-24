@@ -1,0 +1,41 @@
+import os
+import re
+import sys
+import io
+import xlrd
+import itertools
+import socket
+
+# *****Create Lists
+hostname = []
+
+# *****Specify Location*****
+man = (r"C:\Users\user\Desktop\IAN.xlsx")
+
+# *****Open Excel Workbook*****
+wb = xlrd.open_workbook(man)
+
+# *****Open Work Sheet*****
+man_list = wb.sheet_by_index(0) 
+
+# *****For row 0 and column 0 *****
+man_list.cell_value(0, 0)
+
+# *****Store Output to List*****
+for i in range(man_list.nrows):
+    hostname.append(man_list.cell_value(i, 0))
+
+def lookup (hostname):
+    try:
+        for x in hostname:
+            socket.setdefaulttimeout(5)
+            ips_record = socket.getfqdn(x)
+            #print (str(x) + ", " + str(ips_record))
+            if ips_record == (x):
+                print (str(x) + ", " + str("Fail"))
+            else:
+                print (str(x) + ", " + str(ips_record))
+    except socket.herror:
+        pass 
+lookup(hostname)
+
