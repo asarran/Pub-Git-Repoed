@@ -1,0 +1,96 @@
+import requests
+import json
+import urllib3
+import os
+import re
+import sys
+import io
+import xlrd
+import itertools
+import pprint
+import xlsxwriter
+import pandas as pd
+import numpy as np
+
+# *****Create List
+geo = []
+
+file = open(r"C:\Users\#####\Desktop\GeoIP.txt")
+
+# *****Specify Location*****
+anon = (r"C:\Users\#####\Desktop\geoip.xlsx")
+
+# *****Open Excel Workbook*****
+wb = xlrd.open_workbook(anon)
+
+# *****Open Work Sheet*****
+geowb = wb.sheet_by_index(0)
+
+# *****For row 0 and column 0 *****
+geowb.cell_value(0, 0)
+
+# *****Store Output to List*****
+for i in range(geowb.nrows):
+    geo.append(geowb.cell_value(i, 0))
+
+# ***** Create List *****
+asn = []
+city = []
+country = []
+countrycode = []
+isp = []
+query = []
+region = []
+
+# ***** Iterate JSON Data *****
+for x in geo:
+    r = requests.get('http://ip-api.com/json/' + str(x))
+    # print(r.headers, r.status_code)
+
+    # Converts Response to String, Sort, Indent, and Print
+    # json_object=json.dumps((r.json(), sort_keys=True, indent=4, ensure_ascii=False).encode('utf8'))
+    json_object = json.dumps(r.json(), sort_keys=True, indent=4, ensure_ascii=False)
+    # pprint.pprint( json_object)
+
+    # Convert JSON Language to Script
+    # jsonResponse=json.loads(json_object.encode('utf8'))
+    jsonResponse = json.loads(json_object)
+    # pprint.pprint(jsonResponse)
+
+    # ***** Store JSON Attributes to List *****
+    asn.append(jsonResponse["as"])
+    city.append(jsonResponse["city"])
+    country.append(jsonResponse["country"])
+    countrycode.append(jsonResponse["countryCode"])
+    isp.append(jsonResponse["isp"])
+    query.append(jsonResponse["query"])
+    region.append(jsonResponse["region"])
+
+    # ***** Pandas DataFrame *****
+    df0 = pd.DataFrame(data=asn)
+    df1 = pd.DataFrame(data=city)
+    df2 = pd.DataFrame(data=country)
+    df3 = pd.DataFrame(data=countrycode)
+    df4 = pd.DataFrame(data=isp)
+    df5 = pd.DataFrame(data=query)
+    df6 = pd.DataFrame(data=region)
+
+    # ***** Construct Pandas Writer Engine *****
+    writer = pd.ExcelWriter('geo-ip-lookup-results.xlsx', engine='xlsxwriter')
+
+    # ***** Pandas Writer *****
+    df0.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=0)
+    df1.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=1)
+    df2.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=2)
+    df3.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=3)
+    df4.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=4)
+    df5.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=5)
+    df6.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=6)
+
+    # ***** Pandas Save *****
+    writer.save()
+
+
+# ***** Print Summary *****
+print('***** Confirmation *****')
+print('Excel Created: geo-ip-lookup-results.xlsx')
