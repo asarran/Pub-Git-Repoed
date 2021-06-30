@@ -1,0 +1,75 @@
+import os
+import re
+import sys
+import io
+import itertools
+import pprint
+import requests
+import json
+from datetime import timedelta
+import datetime
+import base64
+import urllib3
+import socket
+import string
+
+'''******************************************[ RAPID7 API ]**********************************************************'''
+
+# ***** Specify Credentials ******
+username = ''
+password = ''
+
+# ***** Encode/Decode Credentials ******
+base64string = base64.encodebytes((f'{username}:{password}').encode('utf8')).decode('utf8').replace('\n', '')
+
+# ***** Authorization Header ******
+head = {"Authorization": f'Basic {base64string}'}
+
+# ***** Socket Timeout ******
+socket.setdefaulttimeout(1)
+
+# ***** Disable URL Warning ******
+urllib3.disable_warnings()
+
+# ***** Defined List ******
+raw_site = []
+myid = []
+mysite = []
+site = []
+myscandate = []
+
+# ***** Page Number ******
+for pg in range(100):
+    # ***** Get Request ******
+    r7 = requests.get(url='https://IP:PORT/api/3/sites?page=' + str(pg), headers=head,
+                      verify=False)
+
+    # ***** Append List with Get Request ******
+    raw_site.append(r7)
+
+# ***** Iterate List Containing Get Request ******
+for t in raw_site:
+
+    # ***** Json Object *****
+    json_object_site = json.dumps(t.json(), sort_keys=True, indent=4)
+
+    # ***** Convert Json Object to String *****
+    jsonResponse_site = json.loads(json_object_site)
+    #pprint.pprint(jsonResponse_site)
+
+    # ***** Iterate Through Json Object ******
+    for i in jsonResponse_site['resources']:
+        my_id = ((i['id']))
+        my_site = ((i['name']))
+
+        # ***** Append List with Json Attribute ******
+        myid.append(str(my_id))
+        mysite.append(str(my_site))
+
+# ***** Iterate Through List Json Attribute ******
+for y, z in zip(myid, mysite):
+        print((y) + ' , ' + (z))
+
+
+
+        
