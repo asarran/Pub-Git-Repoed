@@ -1,0 +1,33 @@
+import os
+import re
+import sys
+import io
+import xlrd
+import itertools
+import ipaddress
+
+#Convert Subnet CIDR notations to Subnet Ranges
+
+# *****Create Lists
+myrange = []
+
+# *****Specify File Location
+subnet = (r"C:\Users\anthuny.sarran\Desktop\cidr.xlsx")
+
+# *****Open Excel Workbook
+wb = xlrd.open_workbook(subnet)
+
+# *****Open Work Sheet
+subnet_list = wb.sheet_by_index(0) 
+
+# *****For row 0 and column 0 
+subnet_list.cell_value(0, 0) 
+
+# *****Store Output to List
+for i in range(subnet_list.nrows): 
+    myrange.append(subnet_list.cell_value(i, 0))
+
+for x in myrange:
+    net = ipaddress.ip_network(x)
+    print(net[0], net[-1])
+
