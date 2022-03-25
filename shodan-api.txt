@@ -1,0 +1,136 @@
+import shodan
+import pprint
+import xlsxwriter
+import pandas as pd
+import sys
+import os
+import win32com.client
+import time
+import re
+
+# ***** Shodan API
+key ="INSERT API"
+
+# ***** Shodan Auth Function
+api = shodan.Shodan(key)
+
+# ***** Shodan Search Function
+results = api.search('org:"INSERT COMPANY"')
+
+# ***** Test Print
+print("Searching")
+#pprint.pprint(results)
+#print(results.keys())
+
+# ***** Create Array
+mylist = []
+my_asn = []
+my_res = []
+my_dom = []
+my_has = []
+my_ip = []
+my_isp = []
+my_org = []
+my_os = []
+my_prt = []
+my_tst = []
+my_trp = []
+my_data = []
+
+# ***** Data Iteration and Extraction ***** 
+for i in results['matches']:
+     if i['org'] == 'ORG':
+          asn = ((i['asn']))
+          dom = ((i['domains']))
+          has = ((i['hostnames']))
+          ip = ((i['ip_str']))
+          isp = ((i['isp']))
+          org = ((i['org']))
+          os = ((i['os']))
+          trp = ((i['transport']))
+          prt = ((i['port']))
+          tst = ((i['timestamp']))
+          data = ((i['data']))
+
+
+          # ***** Data into Dictionary ***** 
+          my_asn.append({'ASN': asn})
+          my_dom.append({'Domains': dom})
+          my_has.append({'Hash': has})
+          my_ip.append({'IP': ip})
+          my_isp.append({'ISP': isp})
+          my_org.append({'ORG': org})
+          my_os.append({'OS': os})
+          my_trp.append({'Protocol': trp})
+          my_prt.append({'Port': prt})
+          my_tst.append({'Timestamp': tst})
+          my_data.append({'Issue': data})
+
+          # ***** Pandas Data Frame ***** 
+          df0 = pd.DataFrame(data=my_asn)                                                                                                                                                                                                                                                                                                                                                                                                                               
+          df1 = pd.DataFrame(data=my_dom)
+          df2 = pd.DataFrame(data=my_has)
+          df3 = pd.DataFrame(data=my_ip)
+          df4 = pd.DataFrame(data=my_isp)
+          df5 = pd.DataFrame(data=my_org)
+          df6 = pd.DataFrame(data=my_trp)
+          df7 = pd.DataFrame(data=my_prt)
+          df8 = pd.DataFrame(data=my_tst)
+          df9 = pd.DataFrame(data=my_data)
+
+          # ***** Pandas Writer ***** 
+          writer = pd.ExcelWriter('Shodan_Output.xlsx', engine='xlsxwriter')
+
+          # ***** Pandas Writer ***** 
+          #df0.to_excel(writer, sheet_name='Sheet1', header=True, index=False)
+          df0.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=0)
+          df1.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=1)
+          df2.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=2)
+          df3.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=3)
+          df4.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=4)
+          df5.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=5)
+          df6.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=6)
+          df7.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=7)
+          df8.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=8)
+          df9.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=9)
+          
+          # ***** Pandas Saves ***** 
+          writer.save()
+          print ("Saving File")
+     
+
+# ***** Delay Until Pandas Writes/Save (Race Condition) ***** 
+time.sleep(5)
+print ("Composing Email ....")
+
+# ***** Open Outlook ***** 
+outlook = win32com.client.Dispatch('outlook.application')
+
+# ***** Create Outlook Item ***** 
+mail = outlook.CreateItem(0)
+
+# ***** Define Recipant ***** 
+mail.To = 'enter email'
+
+# ***** Define Subject ***** 
+mail.Subject = 'Enter Subject'
+
+# ***** Compose Message ***** 
+mail.HTMLBody = '<h3>Script: python-api-shodan.py</h3>'
+mail.Body = '''Hi, 
+Source: python-api-shodan.py
+
+body
+
+Thank you, 
+
+'''
+
+# ***** Add Attachment ***** 
+mail.Attachments.Add(r'C:\Users\******\Desktop\Shodan_Output.xlsx')
+
+# ***** Send Mail ***** 
+mail.Send()
+print ("Email Sent")
+print ("Done")
+
