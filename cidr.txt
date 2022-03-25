@@ -12,7 +12,7 @@ import ipaddress
 myrange = []
 
 # *****Specify File Location
-subnet = (r"C:\Users\anthuny.sarran\Desktop\cidr.xlsx")
+subnet = (r"C:\Users\******\Desktop\cidr.xlsx")
 
 # *****Open Excel Workbook
 wb = xlrd.open_workbook(subnet)
