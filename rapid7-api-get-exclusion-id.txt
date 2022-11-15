@@ -1,0 +1,68 @@
+import os
+import re
+import sys
+import io
+import itertools
+import pprint
+import requests
+import json
+from datetime import timedelta
+import datetime
+import base64
+import urllib3
+import socket
+import string
+
+'''******************************************[ RAPID7 API ]**********************************************************'''
+
+# ***** Specify Credentials ******
+username = 'XXXX'
+password = 'XXXX'
+
+# ***** Encode/Decode Credentials ******
+base64string = base64.encodebytes((f'{username}:{password}').encode('utf8')).decode('utf8').replace('\n', '')
+
+# ***** Authorization Header ******
+head = {"Authorization": f'Basic {base64string}'}
+#print (head)
+
+# ***** Socket Timeout ******
+socket.setdefaulttimeout(1)
+
+# ***** Disable URL Warning ******
+urllib3.disable_warnings()
+
+# ***** Defined List ******
+state = []
+rid = []
+raw_tags = []
+revcom = []
+revdate = []
+scoid = []
+scotype = []
+scovul = []
+subdate = []
+subname = []
+subreason = []
+
+# ***** Page Number ******
+# ***** Get Request ******
+r7 = requests.get(url='https://XXURLXX/api/3/vulnerability_exceptions', headers=head,
+                  verify=False)
+
+# ***** Append List with Get Request ******
+raw_tags.append(r7)
+
+
+# ***** Iterate List Containing Get Request ******
+for t in raw_tags:
+
+    # ***** Json Object *****
+    json_object_tag = json.dumps(t.json(), sort_keys=True, indent=4)
+
+    # ***** Convert Json Object to String *****
+    jsonResponse_tag = json.loads(json_object_tag)
+    pprint.pprint(jsonResponse_tag)
+
+
+    #https://XXURLXX/api/3/vulnerability_exceptions/12
