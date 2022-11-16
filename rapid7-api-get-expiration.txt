@@ -1,0 +1,203 @@
+import os
+import re
+import sys
+import io
+import itertools
+import pprint
+import requests
+import json
+from datetime import timedelta
+import datetime
+import base64
+import urllib3
+import socket
+import string
+import xlsxwriter
+import pandas as pd
+import win32com.client
+import time
+'''******************************************[ RAPID7 Total PG ]**********************************************************'''
+
+# ***** Specify Credentials ******
+username = 'XYZ'
+password = 'ZYX'
+
+# ***** Encode/Decode Credentials ******
+base64string = base64.encodebytes((f'{username}:{password}').encode('utf8')).decode('utf8').replace('\n', '')
+
+# ***** Authorization Header ******
+head = {"Authorization": f'Basic {base64string}'}
+#print (head)
+
+# ***** Socket Timeout ******
+socket.setdefaulttimeout(1)
+
+# ***** Disable URL Warning ******
+urllib3.disable_warnings()
+
+# ***** Group [A]: Defined Lists ******
+rid = []
+pgdata = []
+
+
+# ***** Get Request [1]: TotalPages ******
+r7 = requests.get(url='[*********URL********]/api/3/vulnerability_exceptions', headers=head,
+                  verify=False)
+
+# ***** Append List with Get Request ******
+pgdata.append(r7)
+
+# ***** Iterate List Containing Get Request ******
+for p in pgdata:
+
+    # ***** Json Object *****
+    json_object_pgdata = json.dumps(p.json(), sort_keys=True, indent=4)
+
+    # ***** Convert Json Object to String *****
+    json_pgdata = json.loads(json_object_pgdata)
+    #pprint.pprint(json_pgdata)
+
+    # ***** Iterate Through Json Object ******
+    totalpage = ((json_pgdata['page']['totalPages']))
+    print(str(totalpage))
+    
+'''******************************************[ RAPID7 GET/BUILD ID ]**********************************************************'''
+
+# ***** Page Number ******
+for pg in range(totalpage):
+
+    # ***** Get Request [2]: Get Exclusions ID ******
+    r7 = requests.get(url='[*********URL********]?page=' + str(pg), headers=head,
+                  verify=False)
+
+    # ***** Iterate Through Json Object ******
+    for i in json_pgdata['resources']:
+        reid = ((i['id']))
+        rid.append(reid)
+        print(reid)
+print(rid)
+
+url=[]
+for o in rid:
+    #print("[*********URL********]"+str(o))
+    url.append("[*********URL********]"+str(o))
+    
+    
+'''******************************************[ RAPID7 GET EXCEPTION DATA  ]**********************************************************'''
+# ***** Group [B]: Defined Lists ******
+data1=[]
+
+# ***** Group [C]: Defined Lists ******
+review_com=[]
+review_date=[]
+review_name=[]
+review_userid=[]
+review_id=[]
+
+scope_exp=[]
+scope_type=[]
+scope_vulnerability=[]
+scope_state=[]
+
+submit_date=[]
+submit_name=[]
+submit_reason=[]
+submit_user=[]
+
+
+for x in url:
+    # ***** Get Request [3]: Get Exclusions Data ******
+    r7 = requests.get(url=(str(x)), headers=head,
+                  verify=False)
+
+    # ***** Append List with Get Request ******
+    data1.append(r7)
+
+# ***** Iterate List Containing Get Request ******
+for d in data1:
+
+    # ***** Json Object *****
+    json_object_data = json.dumps(d.json(), sort_keys=True, indent=4)
+
+    # ***** Convert Json Object to String *****
+    json_data = json.loads(json_object_data)
+    #pprint.pprint(json_data)
+
+    if 'expires' in json_data:
+        # ***** Json Object: Review ******
+        reviewcom = ((json_data['review']['comment']))
+        reviewdate = ((json_data['review']['date']))
+        reviewname = ((json_data['review']['name']))
+        reviewuserid = ((json_data['review']['user']))
+
+        # ***** Json Object: Scope ******
+        scopetype = ((json_data['scope']['type']))
+        scopevul = ((json_data['scope']['vulnerability']))
+        scopestate = ((json_data['state']))
+        scopeexp = ((json_data['expires']))
+
+        # ***** Json Object: Submit ******
+        submitdate = ((json_data['submit']['date']))
+        submitname = ((json_data['submit']['name']))
+        submitreason = ((json_data['submit']['reason']))
+        submituser = ((json_data['submit']['user']))
+
+        # ***** Dictionary: Review  ******
+        review_com.append({'Review_Comments': reviewcom})
+        review_date.append({'Review_Date': reviewdate})
+        review_name.append({'Review_Name': reviewname})
+        review_userid.append({'Review_UserID': reviewuserid})
+        review_id.append({'Exclusion_ID': reid})
+        
+        # ***** Dictionary: Scope  ******
+        scope_exp.append({'Expired': scopeexp})
+        scope_type.append({'Scope_Type': scopetype})
+        scope_vulnerability.append({'Scope_Vulnerability': scopevul})
+        scope_state.append({'Scope_State': scopestate})
+
+        # ***** Dictionary: Submit  ******
+        submit_date.append({'Submit_Date': submitdate})
+        submit_name.append({'Submit_Name': submitname})
+        submit_reason.append({'Submit_Reason': submitreason})
+        submit_user.append({'Submit_User': submituser})
+
+
+    # ***** Pandas Data Frame *****
+    df0 = pd.DataFrame(data=review_com)                                                                                                                                                                                                                                                                                                                                                                                                                               
+    df1 = pd.DataFrame(data=review_date)
+    df2 = pd.DataFrame(data=review_name)
+    df3 = pd.DataFrame(data=review_userid)
+    df4 = pd.DataFrame(data=scope_exp)
+    df5 = pd.DataFrame(data=scope_type)
+    df6 = pd.DataFrame(data=scope_vulnerability)
+    df7 = pd.DataFrame(data=scope_state)
+    df8 = pd.DataFrame(data=submit_date)
+    df9 = pd.DataFrame(data=submit_name)
+    df10 = pd.DataFrame(data=submit_reason)
+    df11 = pd.DataFrame(data=submit_user)
+    df12 = pd.DataFrame(data=review_id)
+
+    # ***** Pandas Writer ***** 
+    writer = pd.ExcelWriter('r7-api-get-exclusions.xlsx', engine='xlsxwriter')
+
+    # ***** Pandas Writer ***** 
+    df0.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=0)
+    df1.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=1)
+    df2.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=2)
+    df3.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=3)
+    df4.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=4)
+    df5.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=5)
+    df6.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=6)
+    df7.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=7)
+    df8.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=8)
+    df9.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=9)
+    df10.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=10)
+    df11.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=11)
+    df12.to_excel(writer, sheet_name='Sheet1', header=True, index=False, startcol=12)
+            
+    # ***** Pandas Saves ***** 
+    writer.save()
+    print ("Saving File")
+
+
+
