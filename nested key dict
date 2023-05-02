@@ -1,0 +1,12 @@
+def find_key_value(nested_dict, target_key):
+    """
+    Recursively search a nested dictionary for a target key value.
+    """
+    for key, value in nested_dict.items():
+        if key == target_key:
+            return value
+        elif isinstance(value, dict):
+            result = find_key_value(value, target_key)
+            if result is not None:
+                return result
+    return None
