@@ -1,0 +1,110 @@
+AzureActivity
+| where OperationName == "Microsoft.Storage/storageAccounts/write" and ActivityStatus == "Succeeded"
+| extend parsedRequest = parse_json(Request)
+| where parsedRequest.properties.networkAcls.bypass == "AzureServices" and parsedRequest.properties.networkAcls.defaultAction == "Allow"
+| where parsedRequest.properties.blobServices.defaultServiceVersion == "2020-04-08"
+| where parsedRequest.properties.blobServices.containerDeleteRetentionPolicy.enabled == false and parsedRequest.properties.blobServices.containerDeleteRetentionPolicy.days == 7
+| where parsedRequest.properties.blobServices.publicAccess == "Blob" or parsedRequest.properties.blobServices.publicAccess == "ContainerAndBlob"
+| project TimeGenerated, ResourceId, ResourceType, OperationName, Caller, SubscriptionId, ResourceGroup, parsedRequest
+
+AzureActivity
+| where OperationName == "Microsoft.Storage/storageAccounts/write" and ActivityStatus == "Succeeded"
+| extend parsedRequest = parse_json(Request)
+| where parsedRequest.properties.provisioningState == "Succeeded" and parsedRequest.properties.creationMode == "Default"
+| where parsedRequest.properties.networkAcls.bypass == "AzureServices" and parsedRequest.properties.networkAcls.defaultAction == "Allow"
+| where parsedRequest.properties.blobServices.defaultServiceVersion == "2020-04-08"
+| where parsedRequest.properties.blobServices.containerDeleteRetentionPolicy.enabled == false and parsedRequest.properties.blobServices.containerDeleteRetentionPolicy.days == 7
+| where parsedRequest.properties.blobServices.publicAccess == "Blob" or parsedRequest.properties.blobServices.publicAccess == "ContainerAndBlob"
+| where tostring(parsedRequest.properties.source) == "terraform"
+| project TimeGenerated, ResourceId, ResourceType, OperationName, Caller, SubscriptionId, ResourceGroup, parsedRequest
+
+
+AzureActivity 
+| where Category == "ResourceDeployment" 
+| where ResourceProvider == "Microsoft.Storage" 
+| where OperationName == "Microsoft.Storage/storageAccounts/write" 
+| where tostring(DeploymentStatus) =~ "Succeeded" 
+| project TimeGenerated, OperationName, ResourceId, Caller, ResourceGroup, SubscriptionId, DeploymentName, DeploymentStatus, ResourceName, ResourceType, ResourceLocation, Properties 
+| extend StorageAccountCreationTime = tostring(Properties.createdTime) 
+| extend StorageAccountModifiedTime = tostring(Properties.modifiedTime) 
+| extend StorageAccountStatus = tostring(Properties.provisioningState) 
+| project TimeGenerated, Caller, ResourceGroup, SubscriptionId, ResourceName, StorageAccountCreationTime, StorageAccountModifiedTime, StorageAccountStatus
+
+AzureActivity 
+| where OperationName == "Microsoft.Storage/storageAccounts/update" and Properties.contains("networkAcls")
+| extend FirewallSettings = tostring(parse_json(tostring(Properties)).networkAcls)
+| extend ModifiedBy = tostring(tostring(Properties["caller"]))
+| project TimeGenerated, FirewallSettings, ModifiedBy
+
+AzureActivity 
+| where OperationName == "Microsoft.Storage/storageAccounts/write" and Properties.contains("Microsoft.Storage/storageAccounts/blobServices/containers") 
+| extend Resource = tostring(tostring(Properties["resourceType"])) 
+| extend PublicAccess = tostring(parse_json(tostring(Properties)).Microsoft.Storage/storageAccounts/blobServices/containers.publicAccess) 
+| where Resource == "Microsoft.Storage/storageAccounts" and PublicAccess == "Container"
+| project TimeGenerated, Resource, PublicAccess, AccountName = tostring(tostring(Properties["resourceId"]))
+
+
+SRE:
+1.	Contributor role: This role provides full access to all resources in an Azure subscription. An SRE may need this role to perform tasks such as creating and deleting resources, configuring network settings, and managing access control.
+2.	Reader role: This role allows users to view resources in an Azure subscription but not make any changes. An SRE may need this role to monitor the status of resources, view logs and metrics, and troubleshoot issues.
+3.	Monitoring Reader role: This role provides read-only access to monitoring data in Azure. An SRE may need this role to monitor the performance and health of resources, set up alerts, and diagnose issues.
+4.	Security Reader role: This role provides read-only access to security-related data in Azure. An SRE may need this role to monitor security alerts, review security recommendations, and investigate security incidents.
+5.	Backup Operator role: This role allows users to perform backup and restore operations on resources in Azure. An SRE may need this role to ensure that critical data is protected and can be recovered in the event of a disaster.
+
+Network Engineering:
+1.	Network Contributor: This role allows you to manage network resources such as virtual networks, subnets, network security groups, and network interfaces.
+2.	Network Watcher Contributor: This role allows you to use Network Watcher, which is a service in Azure that provides tools to monitor, diagnose, and troubleshoot network issues.
+3.	Virtual Machine Contributor: This role allows you to manage virtual machines, including their networking configuration.
+4.	Security Administrator: This role allows you to manage security-related resources in Azure, including security policies, access control, and security alerts.
+5.	Reader role: This role allows you to view resources in Azure, which can be useful for auditing and troubleshooting purposes.
+
+Support:
+1.	Helpdesk Operator: This role allows you to manage support tickets and requests in Azure, including resetting user passwords, managing user accounts, and troubleshooting common issues.
+2.	User Administrator: This role allows you to manage user accounts in Azure, including creating, updating, and deleting accounts, resetting passwords, and managing group memberships.
+3.	Reader role: This role allows you to view resources in Azure, which can be useful for auditing and troubleshooting purposes.
+4.	Service Administrator: This role allows you to manage Azure services, including creating and modifying service instances, deploying applications, and managing service endpoints.
+5.	Billing Reader: This role allows you to view billing information for Azure services, which can be useful for tracking costs and usage.
+
+Infosec
+1.	Security Administrator: This role allows you to manage security-related resources in Azure, including security policies, access control, and security alerts.
+2.	Security Reader: This role allows you to view security-related resources in Azure, which can be useful for auditing and troubleshooting purposes.
+3.	Security Manager: This role allows you to manage security-related resources in Azure, including configuring security policies, monitoring security events, and responding to security incidents.
+4.	Security Operator: This role allows you to monitor security-related resources in Azure, including security alerts and security events.
+5.	Contributor: This role allows you to create and manage resources in Azure, which can be useful for deploying security-related services and configuring security policies.
+
+
+System Engineer
+1.	Virtual Machine Contributor: This role allows you to manage virtual machines in Azure, including creating, starting, stopping, and deleting virtual machines.
+2.	Network Contributor: This role allows you to manage network resources in Azure, including virtual networks, subnets, network security groups, and network interfaces.
+3.	Reader role: This role allows you to view resources in Azure, which can be useful for auditing and troubleshooting purposes.
+4.	Contributor: This role allows you to create and manage resources in Azure, which can be useful for deploying services and configuring infrastructure.
+
+
+
+
+
+
+•	Contributor role
+a.	Virtual Machine Contributor
+b.	Network Contributor
+c.	Storage Account Contributor
+d.	Application Contributor
+e.	Key Vault Contributor
+f.	SQL Contributor
+g.	Website Contributor
+h.	Logic App Contributor
+i.	Service Bus Contributor
+j.	Redis Cache Contributor
+k.	Batch Contributor
+l.	Search Service Contributor
+m.	Cosmos DB Contributor
+n.	HDInsight Contributor
+o.	IoT Hub Contributor
+p.	Event Hub Contributor
+q.	Stream Analytics Contributor
+r.	Data Lake Store Contributor
+s.	Data Factory Contributor
+t.	Notification Hub Contributor
+u.	Media Services Contributor
+
+
