@@ -1,0 +1,26 @@
+MOP - KALI WSL INSTALL:
+
+- Enable Linux File System
+	>> Windows Features >> Enable File System
+
+- Download the latest package of WSL:
+	>> Navigate: https://learn.microsoft.com/en-us/windows/wsl/install-manual#step-4---download-the-linux-kernel-update-package
+		>> Click Link >> Download >> Run .msi
+
+- Install/Update WSL
+	>> Command Prompt W/ Admin:
+		>> wsl.exe --install
+		>> wsl.exe --update
+
+- Check Linux Repo:
+	>> wsl --list --all
+
+- Check Linux Repo:
+	>> wsl --update
+
+- Check Linux Repo again:
+	>> wsl --list --all
+	>> "should populate the repo now"
+
+- Install Kali now that WSL updated and linux repo listed:
+	>> wsl --install -d kali-linux
