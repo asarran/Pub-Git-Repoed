@@ -1,0 +1,73 @@
+Identities as they interact w/Critical Systems
+	>> ALL Identities
+	>> ALL CRITCAL SYSTEMS
+
+**1. User Management:**
+   - Monitor and alert on the creation, modification, and deletion of Azure AD users.
+   - Detect changes to user attributes, role assignments, and group memberships.
+   - Alert on suspicious mass changes to user attributes.
+
+**2. Service Principals:**
+   - Monitor and alert on the creation and changes to service principals.
+   - Detect and alert on unauthorized applications modifying service principals.
+
+**3. Administrative Accounts:**
+   - Monitor and alert on changes to Azure AD administrator roles.
+   - Detect and alert on administrative role changes for user accounts.
+   - Alert on sign-ins to administrative accounts from unusual locations or devices.
+
+**4. Test Accounts:**
+   - Monitor and alert on the creation of test accounts.
+   - Detect and alert on test accounts with excessive or unusual permissions.
+   - Alert on unexpected login activity or access patterns from test accounts.
+
+**5. Session Activities:**
+   - Monitor and alert on successful user sign-ins and failed login attempts.
+   - Detect and alert on simultaneous logins from multiple locations.
+   - Alert on suspicious activities during a user session.
+
+**6. Password and Authentication Events:**
+   - Detect and alert on multiple failed authentication attempts.
+   - Monitor for password changes and alert on suspicious patterns.
+   - Alert on users with expired or soon-to-expire passwords.
+
+**7. Azure Cloud Shell:**
+   - Detect and alert on Azure Cloud Shell sessions.
+   - Monitor commands executed for potentially malicious activities.
+   - Alert on unexpected or unauthorized access to Azure Cloud Shell.
+
+**8. PowerShell and Azure CLI:**
+   - Monitor and alert on the execution of PowerShell scripts or Azure CLI commands.
+   - Detect and alert on the use of privileged commands or scripts.
+   - Alert on suspicious patterns of command execution.
+
+**9. Azure Portal Activities:**
+   - Detect and alert on logins to the Azure Portal.
+   - Monitor and alert on changes to Azure resources through the portal.
+   - Alert on unusual or unauthorized actions performed in the Azure Portal.
+
+**10. External Tools and Third-Party Integrations:**
+    - Monitor and alert on activities performed through external tools integrated with Azure.
+    - Detect and alert on unexpected API calls from third-party applications.
+
+**11. Azure Key Vault Access:**
+   - Detect and alert on access to Azure Key Vault.
+   - Monitor changes to Key Vault secrets, keys, and certificates.
+
+**12. Azure DevOps:**
+   - Monitor and alert on changes to permissions or roles in Azure DevOps.
+   - Detect and alert on the deployment of applications or changes to infrastructure through Azure DevOps pipelines.
+
+**13. Azure Resource Management (ARM) Templates:**
+   - Monitor and alert on the deployment or modification of Azure resources using ARM templates.
+   - Detect and alert on changes to critical infrastructure configurations.
+
+**14. Azure Policy:**
+   - Monitor and alert on changes to Azure Policy assignments.
+
+**15. API Access:**
+   - Monitor and alert on access to Azure APIs.
+   - Detect and alert on unusual or unauthorized API calls.
+
+**16. Session Recording and Playback:**
+    - If applicable, monitor and alert on playback of recorded sessions.
