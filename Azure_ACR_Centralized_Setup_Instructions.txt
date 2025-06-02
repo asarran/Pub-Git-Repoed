@@ -1,0 +1,137 @@
+
+# Centralized Azure ACR Architecture with Private Endpoints, Key Vault Integration, Azure Pipelines, and Qualys Scanning
+
+## 🔧 Prerequisites
+
+1. **Resource Groups**
+   - `rg-networking`: For VNet, subnets, private endpoints.
+   - `rg-acr`: For ACR resources.
+   - `rg-security`: For Key Vault.
+   - `rg-pipelines`: For Azure DevOps pipeline resources.
+
+2. **Virtual Networks & Subnets**
+   - VNet: `vnet-core`, Address Space: `10.0.0.0/16`
+     - Subnet: `subnet-acr`, Address Prefix: `10.0.1.0/24`
+     - Subnet: `subnet-pe`, Address Prefix: `10.0.2.0/24`
+     - Subnet: `subnet-dev`, Address Prefix: `10.0.3.0/24` (for Dev VM)
+
+3. **Azure Container Registries**
+   - Centralized ACR: `acrCentralized` (SKU: Premium)
+   - Secondary ACR: `acrSecondary` (SKU: Premium)
+
+4. **Azure Key Vault**
+   - Name: `kv-acr-secrets`
+
+5. **Private DNS Zone**
+   - `privatelink.azurecr.io` linked to VNet
+
+6. **Service Principals or Managed Identities**
+   - One per developer or team with scoped access
+
+7. **Azure DevOps Organization and Project**
+   - With access to Key Vault and ACR
+
+---
+
+## 🛠️ Step-by-Step Instructions
+
+### 1. Create Centralized ACR with Private Endpoint
+
+```bash
+az acr create --resource-group rg-acr --name acrCentralized --sku Premium --location eastus
+
+az network private-endpoint create --resource-group rg-networking \
+  --name pe-acrCentralized --vnet-name vnet-core --subnet subnet-pe \
+  --private-connection-resource-id $(az acr show --name acrCentralized --query id -o tsv) \
+  --group-id registry
+
+az network private-dns zone create --resource-group rg-networking --name privatelink.azurecr.io
+
+az network private-dns link vnet create --resource-group rg-networking --zone-name privatelink.azurecr.io \
+  --name acr-dns-link --virtual-network vnet-core --registration-enabled false
+
+az network private-dns record-set a create --name acrCentralized \
+  --zone-name privatelink.azurecr.io --resource-group rg-networking
+
+# Repeat DNS and private endpoint steps for acrSecondary
+```
+
+---
+
+### 2. Create Repositories and Scoped Permissions
+
+> Repositories are created on first push.
+
+Set scoped permissions:
+```bash
+az acr repository set-permissions --name acrCentralized --repository myrepo \
+  --username <sp-username> --password <sp-password> --actions pull
+```
+
+---
+
+### 3. Configure Azure Key Vault
+
+```bash
+az keyvault create --name kv-acr-secrets --resource-group rg-security --location eastus
+
+az keyvault secret set --vault-name kv-acr-secrets --name acrCentral-SP-Secret --value <your-client-secret>
+```
+
+---
+
+### 4. Azure Pipeline Example
+
+```yaml
+trigger:
+- main
+
+variables:
+  ACR_NAME: 'acrCentralized'
+  IMAGE_NAME: 'myrepo/myapp'
+
+steps:
+- task: AzureKeyVault@2
+  inputs:
+    azureSubscription: 'AzureSPN'
+    KeyVaultName: 'kv-acr-secrets'
+    SecretsFilter: 'acrCentral-SP-Secret'
+
+- script: |
+    docker login $ACR_NAME.azurecr.io -u <user> -p $(acrCentral-SP-Secret)
+    docker build -t $IMAGE_NAME .
+    # Add Qualys scan step here
+    docker push $ACR_NAME.azurecr.io/$IMAGE_NAME
+```
+
+---
+
+### 5. ACR-2: Pull from ACR-1
+
+```bash
+az acr import --name acrSecondary \
+  --source acrCentralized.azurecr.io/myrepo/myapp:tag \
+  --username <sp-username> --password <sp-password>
+```
+
+---
+
+### 6. Dev Workstation Setup
+
+- Place a VM in `subnet-dev` of `vnet-core`
+- Install Docker, Azure CLI
+- Use managed identity or service principal to authenticate and pull from ACR
+
+```bash
+docker login acrCentralized.azurecr.io
+docker pull acrCentralized.azurecr.io/myrepo/myapp:tag
+```
+
+---
+
+### ✅ Security Best Practices
+
+- Use managed identities instead of secrets
+- Secure all ACRs with private endpoints and firewall to restrict access to VNet
+- Regularly rotate credentials in Key Vault
+- Scan all images with Qualys or another container scanner
